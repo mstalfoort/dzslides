@@ -430,9 +430,17 @@
     }
     var incrementals = this.slides[this.idx - 1].$$('.incremental');
     if (this.step <= 0) {
-      incrementals.forEach(function(aNode) {
-        aNode.removeAttribute('active');
-      });
+      if (this.isOpera) {
+        Array.prototype.forEach.call(incrementals, function(aNode, aIndex, aNodeList) {
+          aNode.removeAttribute('active');
+          aNode.setAttribute('data-repaint', "idx0"); //force a repaint in Opera by setting a custom data attribute
+        });
+      }
+      else {
+        incrementals.forEach(function(aNode) {
+          aNode.removeAttribute('active');
+        });
+      }
       return;
     }
     var next = this.slides[this.idx - 1].$$('.incremental > *')[this.step - 1];
@@ -440,15 +448,29 @@
       next.setAttribute('aria-selected', true);
       next.parentNode.setAttribute('active', true);
       var found = false;
-      incrementals.forEach(function(aNode) {
-        if (aNode != next.parentNode)
-          if (found)
-            aNode.removeAttribute('active');
+      if (this.isOpera) {
+        next.parentNode.setAttribute('data-repaint', ("idx"+this.step)); //force a repaint in Opera by setting a custom data attribute
+        Array.prototype.forEach.call(incrementals, function(aNode, aIndex, aNodeList) {
+          if (aNode != next.parentNode)
+            if (found)
+              aNode.removeAttribute('active');
+            else
+              aNode.setAttribute('active', true);
           else
-            aNode.setAttribute('active', true);
-        else
-          found = true;
-      });
+            found = true;
+        });
+      }
+      else {
+        incrementals.forEach(function(aNode) {
+          if (aNode != next.parentNode)
+            if (found)
+              aNode.removeAttribute('active');
+            else
+              aNode.setAttribute('active', true);
+          else
+            found = true;
+        });
+      }
     } else {
       setCursor(this.idx, 0);
     }
